@@ -18,6 +18,10 @@ io.on("connection", (socket) => {
     try {
       socket.join(roomId);
       console.log(`User ${socket.id} joined room: ${roomId}`);
+      // Emit member count to update all clients in the room
+      const room = io.sockets.adapter.rooms.get(roomId);
+      const memberCount = room ? room.size : 0;
+      io.to(roomId).emit("memberCount", memberCount);
     } catch (err) {
       console.error(`Error joining room ${roomId}: ${err}`);
     }
@@ -30,6 +34,7 @@ io.on("connection", (socket) => {
         originalText: data.originalText,
         translatedText: data.translatedText,
         originalLanguage: data.originalLanguage,
+        socketId: socket.id, // Include the sender's socketId
       });
       if (ack) {
         ack({ status: "message sent" });
@@ -50,6 +55,14 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
+    // Update member count for all rooms the socket was in
+    socket.rooms.forEach((roomId) => {
+      if (roomId !== socket.id) {
+        const room = io.sockets.adapter.rooms.get(roomId);
+        const memberCount = room ? room.size : 0;
+        io.to(roomId).emit("memberCount", memberCount);
+      }
+    });
   });
 });
 
