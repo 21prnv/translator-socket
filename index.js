@@ -34,6 +34,7 @@ io.on("connection", (socket) => {
         originalText: data.originalText,
         translatedText: data.translatedText,
         originalLanguage: data.originalLanguage,
+        translatedLanguage: data.translatedLanguage,
         socketId: socket.id, // Include the sender's socketId
       });
       if (ack) {
